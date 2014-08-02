@@ -45,9 +45,9 @@ Shader "Hidden/GlitchFx"
         float4 glitch = tex2D(_GlitchTex, i.uv);
 
         float thresh = 1.001 - _Intensity * 1.001;
-        float w_d = step(thresh, pow(glitch.z, 2)); // Displacement glitch
-        float w_b = step(thresh, pow(glitch.w, 2)); // Buffer glitch
-        float w_c = step(thresh, pow(glitch.z, 3)); // Color glitch
+        float w_d = step(thresh, pow(glitch.z, 2.5)); // Displacement glitch
+        float w_b = step(thresh, pow(glitch.w, 2.5)); // Buffer glitch
+        float w_c = step(thresh, pow(glitch.z, 3.5)); // Color glitch
 
         // Displacement.
         float2 uv = i.uv + glitch.xy * w_d;
