@@ -44,17 +44,21 @@ Shader "Hidden/GlitchFx"
     {
         float4 glitch = tex2D(_GlitchTex, i.uv);
 
-        float w1 = step(1 - _Intensity, pow(glitch.w, 3));
-        float w2 = step(1 - _Intensity, pow(glitch.w, 6));
+        float w_d = step(1.005 - _Intensity, pow(glitch.z, 2)); // Displacement glitch
+        float w_b = step(1.005 - _Intensity, pow(glitch.w, 2)); // Buffer glitch
+        float w_c = step(1.005 - _Intensity, pow(glitch.z, 3)); // Color glitch
 
-        float2 uv = i.uv + glitch.xy * w1;
+        // Displacement.
+        float2 uv = i.uv + glitch.xy * w_d;
         float4 source = tex2D(_MainTex, uv);
-        float4 buffer = tex2D(_BufferTex, uv);
 
-        //float3 rgb = lerp(source.rgb, buffer.rgb + lerp(float3(0, 0.0, 0), float3(0, 0.5, 0.5), glitch.z), w2);
-        float3 rgb = lerp(source.rgb, buffer.rgb - source.gbb + source.rrg, w2);
+        // Mix with a buffer.
+        float3 color = lerp(source, tex2D(_BufferTex, uv), w_b).rgb;
 
-        return float4(rgb, source.a);
+        // Shuffle color components.
+        color = lerp(color, color - source.bbg + source.grr * 0.5, w_c);
+
+        return float4(color, source.a);
     }
 
     ENDCG 

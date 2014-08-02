@@ -90,11 +90,11 @@ public class GlitchFx : MonoBehaviour
         SetUpObjects();
 
         if ((frameCount % 13) == 0) Graphics.Blit(source, buffer1);
-        if ((frameCount % 23) == 0) Graphics.Blit(source, buffer2);
+        if ((frameCount % 73) == 0) Graphics.Blit(source, buffer2);
 
         material.SetFloat("_Intensity", intensity);
         material.SetTexture("_GlitchTex", texture);
-        material.SetTexture("_BufferTex", (frameCount % 3) == 0 ? buffer1 : buffer2);
+        material.SetTexture("_BufferTex", Random.value > 0.5f ? buffer1 : buffer2);
 
         Graphics.Blit(source, destination, material);
 
