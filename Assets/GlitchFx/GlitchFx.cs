@@ -26,53 +26,68 @@ using System.Collections;
 [RequireComponent(typeof(Camera))]
 public class GlitchFx : MonoBehaviour
 {
-    [Range(0, 1)]
-    public float intensity = 1.0f;
+    // Intensity parameter.
+    [SerializeField, Range(0, 1)]
+    float _intensity = 1.0f;
 
-    // Temporary objects.
+    float intensity {
+        get { return _intensity; }
+        set { _intensity = value; }
+    }
+
+    // Glitch shader and material.
     Material material;
-    Texture2D texture;
-    RenderTexture buffer1;
-    RenderTexture buffer2;
+
+    // Noise texture.
+    Texture2D noiseTexture;
+
+    // Old frame buffers.
+    RenderTexture oldFrame1;
+    RenderTexture oldFrame2;
+
+    // Frame counter for updating buffers.
     int frameCount;
 
+    // Simple random color.
     static Color RandomColor()
     {
         return new Color(Random.value, Random.value, Random.value, Random.value);
     }
 
+    // Initialize the temporary object if it needs.
     void SetUpObjects()
     {
-        if (material != null && texture != null) return;
+        if (material != null) return;
 
         material = new Material(Shader.Find("Hidden/GlitchFx"));
         material.hideFlags = HideFlags.DontSave;
 
-        texture = new Texture2D(64, 32, TextureFormat.ARGB32, false);
-        texture.hideFlags = HideFlags.DontSave;
-        texture.wrapMode = TextureWrapMode.Clamp;
-        texture.filterMode = FilterMode.Point;
+        noiseTexture = new Texture2D(64, 32, TextureFormat.ARGB32, false);
+        noiseTexture.hideFlags = HideFlags.DontSave;
+        noiseTexture.wrapMode = TextureWrapMode.Clamp;
+        noiseTexture.filterMode = FilterMode.Point;
 
-        buffer1 = new RenderTexture(Screen.width, Screen.height, 0);
-        buffer2 = new RenderTexture(Screen.width, Screen.height, 0);
+        oldFrame1 = new RenderTexture(Screen.width, Screen.height, 0);
+        oldFrame2 = new RenderTexture(Screen.width, Screen.height, 0);
 
-        UpdateParameters();
+        UpdateNoise();
     }
 
-    void UpdateParameters()
+    // Update the noise texture.
+    void UpdateNoise()
     {
         var color = RandomColor();
 
-        for (var y = 0; y < texture.height; y++)
+        for (var y = 0; y < noiseTexture.height; y++)
         {
-            for (var x = 0; x < texture.width; x++)
+            for (var x = 0; x < noiseTexture.width; x++)
             {
                 if (Random.value > 0.85f) color = RandomColor();
-                texture.SetPixel(x, y, color);
+                noiseTexture.SetPixel(x, y, color);
             }
         }
 
-        texture.Apply();
+        noiseTexture.Apply();
     }
 
     void Start()
@@ -82,20 +97,23 @@ public class GlitchFx : MonoBehaviour
 
     void Update()
     {
-        if (Random.value > 0.85f) UpdateParameters();
+        if (Random.value > 0.85f) UpdateNoise();
     }
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         SetUpObjects();
 
-        if ((frameCount % 13) == 0) Graphics.Blit(source, buffer1);
-        if ((frameCount % 73) == 0) Graphics.Blit(source, buffer2);
+        // Update old frame buffers with the constant interval.
+        if ((frameCount % 13) == 0) Graphics.Blit(source, oldFrame1);
+        if ((frameCount % 73) == 0) Graphics.Blit(source, oldFrame2);
 
-        material.SetFloat("_Intensity", intensity);
-        material.SetTexture("_GlitchTex", texture);
-        material.SetTexture("_BufferTex", Random.value > 0.5f ? buffer1 : buffer2);
+        // Set up the material.
+        material.SetFloat("_Intensity", _intensity);
+        material.SetTexture("_GlitchTex", noiseTexture);
+        material.SetTexture("_BufferTex", Random.value > 0.5f ? oldFrame1 : oldFrame2);
 
+        // Glitch it!
         Graphics.Blit(source, destination, material);
 
         frameCount++;
