@@ -30,7 +30,7 @@ public class GlitchFx : MonoBehaviour
     [SerializeField, Range(0, 1)]
     float _intensity = 1.0f;
 
-    float intensity {
+    public float intensity {
         get { return _intensity; }
         set { _intensity = value; }
     }
