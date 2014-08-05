@@ -35,6 +35,9 @@ public class GlitchFx : MonoBehaviour
         set { _intensity = value; }
     }
 
+    // Reference to the shader.
+    [SerializeField] Shader shader;
+
     // Glitch shader and material.
     Material material;
 
@@ -59,7 +62,7 @@ public class GlitchFx : MonoBehaviour
     {
         if (material != null) return;
 
-        material = new Material(Shader.Find("Hidden/GlitchFx"));
+        material = new Material(shader);
         material.hideFlags = HideFlags.DontSave;
 
         noiseTexture = new Texture2D(64, 32, TextureFormat.ARGB32, false);
